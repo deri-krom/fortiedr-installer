@@ -1,44 +1,22 @@
 #!/bin/bash
 
+# Detect OS using lsb_release
+OS=$(lsb_release -is 2>/dev/null || echo "non-ubuntu")
+
 # Function to check if unzip is installed and install it if necessary
 install_unzip() {
     if ! command -v unzip &> /dev/null
     then
         echo "Unzip could not be found. Installing unzip..."
-        if [[ $PACKAGE_MANAGER == "yum" ]]; then
-            sudo yum update -y
-            sudo yum install unzip -y
-        elif [[ $PACKAGE_MANAGER == "apt" ]]; then
-            sudo apt update
+        if [ "$OS" = "Ubuntu" ]; then
             sudo apt install unzip -y
         else
-            echo "Unsupported package manager. Exiting."
-            exit 1
+            sudo yum install unzip -y
         fi
     else
         echo "Unzip is already installed."
     fi
 }
-
-# Detect OS and choose package manager
-if [ -f /etc/os-release ]; then
-    . /etc/os-release
-    case $ID in
-        ubuntu|debian)
-            PACKAGE_MANAGER="apt"
-            ;;
-        centos|rhel|fedora|amazon)
-            PACKAGE_MANAGER="yum"
-            ;;
-        *)
-            echo "Unsupported OS: $ID"
-            exit 1
-            ;;
-    esac
-else
-    echo "Cannot determine OS. Exiting."
-    exit 1
-fi
 
 # Install unzip based on detected OS
 install_unzip
@@ -81,4 +59,3 @@ else
     systemctl status fortiedr.service
     exit 1
 fi
-
